@@ -61,7 +61,7 @@
 
         <h2>Introduzione</h2>
         <p>
-            Siamo in un ottimo per le esplorazioni spaziali: il nuovo telescopio James Webb ci invia foto più accurate che mai dello spazio,
+            Siamo in un ottimo periodo per le esplorazioni spaziali: il nuovo telescopio James Webb ci invia foto più accurate che mai dello spazio,
             si sta avviando il turismo spaziale e si pianifica di mandare il primo uomo su Marte. Anche il mondo dei videogiochi è sempre stato influenzato dallo spazio,
             basti pensare come molti dei primi videogiochi avessero proprio lo spazio come ambientazione (Space Invaders, Spacewar!...). Per questi motivi ho deciso di
             realizzare il mio primo videogioco ispirandomi proprio a qusto tema.    
@@ -94,7 +94,7 @@
 
                 <p>
                     Sfruttando poi l'incremento del campo visivo della matrice di vista, ho notato che era possibile ottenere un effetto
-                    simile ad un accelerazione iperspaziale a cui molti film di fantascienza ci hanno abituato, ho così sfruttato la cosa inserendo i portali acceleratori 
+                    simile ad un'accelerazione iperspaziale a cui molti film di fantascienza ci hanno abituato, ho così sfruttato la cosa inserendo i portali acceleratori 
                     nel gioco. 
                 </p> 
 
@@ -172,7 +172,7 @@
                 </div>
 
                 <p>  
-                    Nel caso di asteroide2 ho inoltre utilizzato la funzionalità
+                    Nel caso del secondo modello ho inoltre utilizzato la funzionalità
                     di sharpening per darle delle linee meno aguzze, inoltre ho applicato un normal mapping per migliorarne la resa visiva (tuttavia non sono riuscito ad implementarne
                     lo sfruttamento in fase di rendering).   
                 </p>
@@ -208,8 +208,8 @@
         <h2>Illuminazione</h2>
         <p>
             L'illuminzaione si avvale di due fonti luminose, la prima, partendo dall'esempio <i>sphere_shadows_spot_light</i>, genera un cono di luce che permette di avvistare 
-            gli asteroidi in avvicinamento; la seconda una luce interna alla nave che permette di visualizzarne le texture all'interno. Per affinare la resa grafica ho 
-            inserito nella schermata delle impostazioni, la possibilità di aggiornare il valore dell'angolo della proiezione della luce, il valore del bias, 
+            gli asteroidi in avvicinamento; la seconda una luce interna alla nave che permette di visualizzarne le texture presenti dentro di essa. Per affinare la resa grafica ho 
+            inserito nella schermata delle impostazioni la possibilità di aggiornare il valore dell'angolo della proiezione della luce, il valore del bias, 
             l'intensità delle ombre e della lucentezza in modo da identificare i valori che permettessero di ottenere una migiore resa grafica.
         </p>
 
@@ -220,7 +220,7 @@
 
         <p>
             Le immagini sopra mostrano il menù delle impostazioni citato nel paragrafo precedente, mostrando con alcuni esempi sulle variazioni attuabili sulla 
-            resa delle mesh illuminate.
+            resa degli asteroidi illuminati.
         </p>
         <div class="half-page-center">
             <img src="immagini/InternoInGame.png" />
@@ -230,8 +230,8 @@
         <h2>Gestione meteoriti</h2>
         <p>
             I meteoriti vengono generati mediante l'ausilio di un array che ne definisce la posizione, la scala delle dimensioni, la tipologia e la rotazione a cui sono 
-            soggetti, tutti questi valori vengono generati randomicamente dalla funzione AddAsteroid(). L'array viene poi iterato nella funzione drawScene che chiamando la funzione
-            drawTravellingAsteroid andrà a disegnare l'asteroide con le specifiche scelte. Le posizioni degli asteroidi nella lista, per quanto riguarda
+            soggetti, tutti questi valori vengono generati randomicamente dalla funzione <i>AddAsteroid()</i>. L'array viene poi iterato nella funzione <i>drawSceneI()</i> che chiamando la funzione
+            <i>drawTravellingAsteroid()</i> andrà a disegnare l'asteroide con le specifiche scelte. Le posizioni degli asteroidi nella lista, per quanto riguarda
             l'asse z, viene poi decrementato in modo da simularne il movimento verso l'astronave. Raggiunta la posizione della nave (z = 0), viene controllato un eventuale 
             collisione che determinerebbe la fine della partita. Una volta superata la sogli della nave l'asteroide viene rimosso con uno shift dell'array in modo da non occupare memoria inutilmente.
         </p>
@@ -244,7 +244,7 @@
             In alto è infine presente una textview che permette di visualizzare il punteggio ottenuto. 
             È possibile inoltre giocare tramite il mouse, tenendo premuto il tasto sinstro del mouse l'astronave seguirà il mouse nei suoi movimenti.
             <br/>
-            Per rendere il gioco di difficoltà incrementale, ho impostato la funzione <i>increaseDifficulty()</i> che permette di rendere il gioco via via più complicato:
+            Per rendere il gioco meno banale, ho impostato la funzione <i>increaseDifficulty()</i> che permette di rendere il gioco via via più complicato:
             la velocità degli asteroidi infatti aumenterà progressivamente e contemporaneamente il loro numero diventerà maggiore. Raggiunto un limite di soglia al numero
             di asteroidi (180 circa), la scala massima di quest'ultimi inizierà ad aumentare rendendo il gioco sempre più difficile. 
         </p>
@@ -253,8 +253,8 @@
         <p>
             La versione mobile è utilizabile sia in landscape che in modalità portrait, e presenta all'utente quattro tasti direzionali e un bottone per accedere alle
             impostazioni. Si può inotre cambiare visuale effettuando un doppio tap sulla textview che mostra il punteggio del giocatore. Per testarne la resa ho utilizzato
-            il mio telefono collegandomi al live server sulla rete locale in modo da rifinire i parametri di illuminzaione in modo da ottenere un effetto il più
-            accurato possibile alla versione PC.
+            il mio telefono collegandomi al live server sulla rete locale in modo da rifinire i parametri di illuminzaione in modo da ottenere una resa il più
+            simile possibile alla versione PC.
         </p>
         <div class="half-page-l">
             <img src="immagini/Landscape.png" />
@@ -266,7 +266,8 @@
             <h3>Portrait</h3>
         </div>
         <p>
-            Abilitando inoltre il meta tag html <i>mobile-web-app-capable</i> è possibile installare il programma come webapp su dispositivi mobili.
+            Abilitando inoltre il meta tag html <i>mobile-web-app-capable</i> è possibile installare il programma come webapp su dispositivi mobili per semplificarne l'esecuzione
+            e rimuovere la search bar del browser.
         </p>
 
         
