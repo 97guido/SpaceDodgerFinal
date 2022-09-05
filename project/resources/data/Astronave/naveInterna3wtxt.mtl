@@ -1,0 +1,13 @@
+# Blender MTL File: 'naveInterna2.blend'
+# Material Count: 1
+
+newmtl Steel
+Ns 159.266875
+Ka 0.201835 0.201835 0.201835
+Kd 0.317292 0.317292 0.317292
+Ks 0.509174 0.509174 0.509174
+Ke 0.000000 0.000000 0.000000
+Ni 0.049999
+d 1.000000
+illum 3
+map_Kd Steel.jpg

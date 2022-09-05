@@ -1,0 +1,12 @@
+# Blender MTL File: 'Acceleratore.blend'
+# Material Count: 1
+
+newmtl Blu
+Ns 1000.000000
+Ka 0.062992 0.062992 0.062992
+Kd 0.000000 0.005443 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1

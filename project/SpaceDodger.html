@@ -1,0 +1,460 @@
+<!doctype html>
+<html>
+	<head>
+		<!-- Ricarico sempre la pagina da zero e senza usare la cache -->
+		<META HTTP-EQUIV=”Pragma” CONTENT=”no-cache”>
+		<META HTTP-EQUIV=”Cache-Control” CONTENT=”no-cache”>
+
+		<!-- Permette di abilitare la modalità webapp su mobile  -->
+		<meta name="mobile-web-app-capable" content="yes">
+
+		<!-- CSS -->
+		<style>
+			body {
+				background: #050019;
+				overflow: hidden; /* Per nascondere le scrollbar  */
+			}
+			#canvasView {
+				position:absolute; 
+				top: 0%;
+				left: 0%;
+				width: 100%;
+				/* height: 100%; */
+			}
+			#pointView {
+				position: absolute;
+				left: 43%;
+				top: 5%;
+				padding: 2%;
+				width: 10%;
+				text-align: center;
+				font-size: 1em;
+				font-weight: bold;
+				font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+				color: aquamarine;
+				background: #030334;
+				user-select: none;
+			}
+			#startBtn {
+				position: absolute;
+				left: 45%;
+				width: fit-content;
+				top: 50%;
+				padding: 2%;
+				text-align: center;
+				font-size: 3em;
+				font-weight: bold;
+				font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+				color: #030334;
+				background: #cd0000;
+			}
+
+			#settingsMenu {
+				position: absolute;
+				top: 0%;
+				left: 0%;
+				height: 100%;
+				width: 100%;
+				/* background: #0d5286ee; */
+				background: #FFFFFF11;
+				visibility: hidden;
+				overflow-y:scroll;
+				overflow-x: hidden;
+			}
+
+			.rangeView {
+				width: 80%;
+				top: 10%;
+				margin: 0 auto;
+				margin-left: 10%;
+				text-align: center;
+				font-size: 3em;
+				font-weight: bold;
+				font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+				color: #0d5286;
+			}
+			.container {  
+				position: absolute;
+				width: 100%;
+				height: 100%;
+			}
+			.disable-dbl-tap-zoom {
+				touch-action: none;
+			}
+
+		</style>
+	</head>
+	
+	<body>
+
+		<!-- Variabili e costanti globali -->
+		<script>
+			const thorusRadius = 350;
+			const msAsteroidRatioLimit = 15;
+			const virataStep = 0.01;
+			const asteroidScaleSizeLimit = 50;
+
+			var gameStarted = false;
+			var gamePause = false;
+			var asteroidList = []
+			var asteroidSpeed = 3;
+			var asteroidStartDist = -400*asteroidSpeed;
+			var moveDeltaSpeed = asteroidSpeed / 2;
+
+			var px, py, pz; // Posizione astronave
+			var asteroidScaleSizeMax = 30;
+			var asteroidScaleSizeMin = 10;
+			
+			var universeSpeed = 0.002;
+			var msAsteroidRatio = 100;
+
+			var rotazioneVirata = 0;
+			var rotazioneSuGiu = 0;
+
+			var turboMode = false;
+			var xShift = 0;
+			var yShift = 0;
+
+			var targetAstronave = [];
+			var points = 0;
+
+			var onMobile = false;
+
+		</script>
+
+		<div class="container; disable-dbl-tap-zoom" id="containerGame">
+			<canvas width="1600" height="900" id="canvasView"></canvas>
+
+			<p id="pointView">SPACE DASHER</p> 
+
+			<button class="disable-dbl-tap-zoom; " id="startBtn">Start</button>
+
+			<!-- Pulsanti per versione mobile -->
+			<div id = "controllersDiv">
+				<input id = "ButtonW" type="image" src="resources/images/Arrow.png" style="position:absolute; right: 7%; top: 60%;" />
+				<input id = "ButtonS" type="image" src="resources/images/Arrow.png" style="position:absolute; right: 7%; top: 75%; transform: rotate(180deg);" />
+				<input id = "ButtonA" type="image" src="resources/images/Arrow.png" style="position:absolute; left: 7%; top: 75%; transform: rotate(-90deg);" />
+				<input id = "ButtonD" type="image" src="resources/images/Arrow.png" style="position:absolute; left: 25%; top: 75%; transform: rotate(90deg);" />
+				<input id = "ButtonSettings" type="image" src="resources/images/gear.png" style="position:absolute; right: 5%; top: 5%;" />
+			</div>
+
+			<!-- Menù dell impostazioni -->
+			<div id="settingsMenu">
+				<h1 style="position:relative; background: #085684; text-align: center; width: 100%; padding: 2%; font-size: 2em;">Impostazioni</h1>
+
+				<h2 id="labelFovLight" class="rangeView" style="position:relative;">FOV luce</h2>
+				<input title="FOV luce" class="rangeView" id="rangeFovLight" type="range" style="position:relative; padding-bottom: 10%;" step="0.00000001" min="-60" max="90" />
+				<h2 id="labelBias" class="rangeView" style="position:relative;">Bias</h2>
+				<input title="Bias"class="rangeView" id="rangeBias" type="range" style="position:relative; padding-bottom: 10%;" step="0.0000000001" max="-0.00000001" min="-0.1"/>
+				<h2 id="labelShadowIntensity" class="rangeView" style="position:relative;">Intensità ombra</h2>
+				<input title="Intensità ombra"class="rangeView" id="rangeShadowIntensity" type="range" style="position:relative; padding-bottom: 10%;" step="0.01" max="2" min="-2"/>
+				<h2 id="labelShininess"class="rangeView" style="position:relative;">Lucentezza</h2>
+				<input title="Lucentezza"class="rangeView" id="rangeShininess" type="range" style="position:relative; padding-bottom: 10%;" step="1" max="500" min="-0"/>
+			</div>
+		</div>
+
+
+		<!-- VS e FS per le mesh illuminate dalle fonti luminose -->
+		<script id="light-vs" type="not-javascript">
+			attribute vec4 a_position;
+			attribute vec2 a_texcoord;
+			attribute vec3 a_normal;
+			
+			uniform vec3 u_lightWorldPosition;
+			uniform vec3 u_viewWorldPosition;
+			
+			uniform mat4 u_projection;
+			uniform mat4 u_view;
+			uniform mat4 u_world;
+			uniform mat4 u_textureMatrix;
+			
+			varying vec2 v_texcoord;
+			varying vec4 v_projectedTexcoord;
+			varying vec3 v_normal;
+			
+			varying vec3 v_surfaceToLight;
+			varying vec3 v_surfaceToView;
+			
+			void main() {
+			  // Multiply the position by the matrix.
+			  vec4 worldPosition = u_world * a_position;
+			
+			  gl_Position = u_projection * u_view * worldPosition;
+			
+			  // Pass the texture coord to the fragment shader.
+			  v_texcoord = a_texcoord;
+			
+			  v_projectedTexcoord = u_textureMatrix * worldPosition;
+			
+			  // orient the normals and pass to the fragment shader
+			  v_normal = mat3(u_world) * a_normal;
+			
+			  // compute the world position of the surface
+			  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+			
+			  // compute the vector of the surface to the light
+			  // and pass it to the fragment shader
+			  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+			
+			  // compute the vector of the surface to the view/camera
+			  // and pass it to the fragment shader
+			  v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
+
+			}
+		</script>
+
+		<script id="light-fs" type="not-javascript">
+		precision mediump float;
+
+		// Passed in from the vertex shader.
+		varying vec2 v_texcoord;
+		varying vec4 v_projectedTexcoord;
+		varying vec3 v_normal;
+		varying vec3 v_surfaceToLight;
+		varying vec3 v_surfaceToView;
+
+		uniform vec4 u_colorMult;
+		uniform sampler2D u_texture;
+		uniform sampler2D u_projectedTexture;
+		uniform float u_bias;
+		uniform float u_shininess;
+		uniform float u_shadowIntensity;
+		uniform vec3 u_lightDirection;
+		uniform float u_innerLimit;          // in dot space
+		uniform float u_outerLimit;          // in dot space
+
+		void main() {
+		// because v_normal is a varying it's interpolated
+		// so it will not be a unit vector. Normalizing it
+		// will make it a unit vector again
+		vec3 normal = normalize(v_normal);
+
+		vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+		vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+		vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+
+		float dotFromDirection = dot(surfaceToLightDirection,
+									-u_lightDirection);
+		float limitRange = u_innerLimit - u_outerLimit;
+		float inLight = clamp((dotFromDirection - u_outerLimit) / limitRange, u_shadowIntensity, 1.0);
+		float light = inLight * dot(normal, surfaceToLightDirection);
+		float specular = inLight * pow(dot(normal, halfVector), u_shininess);
+
+		vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
+		float currentDepth = projectedTexcoord.z + u_bias;
+
+		bool inRange =
+			projectedTexcoord.x >= 0.0 &&
+			projectedTexcoord.x <= 1.0 &&
+			projectedTexcoord.y >= 0.0 &&
+			projectedTexcoord.y <= 1.0;
+
+		bool inCabina =
+			v_projectedTexcoord.z <= 0.8 &&
+			v_projectedTexcoord.y >= -1.0; // &&
+			// v_projectedTexcoord.y <= 500.0;
+
+
+		float cabinaLight = inCabina ? 1.0 : 0.0;
+
+		// the 'r' channel has the depth values
+		float projectedDepth = texture2D(u_projectedTexture, projectedTexcoord.xy).r;
+		float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.0 : 1.0;
+
+		float light2 = dot(normal, surfaceToLightDirection);
+		
+		vec4 texColor = texture2D(u_texture, v_texcoord) * u_colorMult;
+		gl_FragColor = vec4(
+			texColor.rgb * light * shadowLight + 
+			light2*texColor.rgb * cabinaLight +
+			specular * shadowLight,
+			texColor.a);
+		}
+		</script>
+		
+		<!-- VS e FS per le fonti colorate (no texture) -->
+		<script  id="color-vs" type="x-shader/x-vertex">
+			attribute vec4 a_position;
+
+			uniform mat4 u_projection;
+			uniform mat4 u_view;
+			uniform mat4 u_world;
+
+			void main() {
+			  // Multiply the position by the matrices.
+			  gl_Position = u_projection * u_view * u_world * a_position;
+			}
+		</script>
+		<script  id="color-fs" type="x-shader/x-fragment">
+			precision mediump float;
+
+			uniform vec4 u_color;
+			void main() {
+			  gl_FragColor = u_color;
+			}
+		</script>
+		
+
+		<!-- FS e VS non influenzati dalla luce, per la mesh universo e acceleratore -->
+		<script id="universe-vs" type="not-javascript">
+			
+			attribute vec4 a_position;
+			attribute vec2 a_texcoord;
+			attribute vec3 a_normal;
+
+			uniform mat4 u_projection;
+			uniform mat4 u_view;
+			uniform mat4 u_world;
+			
+			varying vec2 v_texcoord;
+			varying vec3 v_normal;
+
+			void main(void) { //pre-built function
+				vec4 worldPosition = u_world * a_position;
+				gl_Position = u_projection * u_view * worldPosition;
+				v_normal = mat3(u_world) * a_normal;
+				v_texcoord = a_texcoord;
+			}
+		</script>
+		<script id="universe-fs" type="not-javascript">
+		
+			precision mediump float;
+
+			varying vec2 v_texcoord;
+			varying vec3 v_normal;
+
+			uniform sampler2D u_texture;
+		
+			void main() {
+			  vec3 normal = normalize(v_normal);
+			  gl_FragColor = texture2D(u_texture, v_texcoord);
+			  
+			}
+		</script>
+
+
+		<!-- Librerire -->
+		<script type="text/javascript" src="resources/webgl-utils.js"></script>
+		<script type="text/javascript" src="resources/m4.js"></script>
+		<script src="utils.js"></script>
+		<script src="renders.js"></script>
+		<script src="geometries.js"></script>
+		<script src="eventsHandlers.js"></script>
+		<script src="gameLogic.js"></script>
+		<script src="astronaveLogic.js"></script>
+		
+		<script>
+			var canvas = document.getElementById('canvasView');
+			var gl = canvas.getContext('webgl');
+			if (!gl) {
+				console.log("NON SUPPORTA WEBGL Context");
+			}
+			
+			//ext serve per la depth texture, se no diventa tutto nero
+			var ext = gl.getExtension('WEBGL_depth_texture');
+			if (!ext) {
+			  console.log("NON SUPPORTA WEBGL_depth_texture");  // eslint-disable-line
+			  }
+			
+			setGeometries(gl);
+
+			var programInfo_light = webglUtils.createProgramInfo(gl, ["light-vs", "light-fs"]);
+			var programInfo_color = webglUtils.createProgramInfo(gl, ["color-vs", "color-fs"]);
+			var programInfo_universe = webglUtils.createProgramInfo(gl, ["universe-vs", "universe-fs"]);
+			
+			setTextures();
+			createTextureForLights();
+			setObjsToDraw();
+			
+			const settings = {				
+				aspect: gl.canvas.clientWidth / gl.canvas.clientHeight,
+				fov: degToRad(100),		
+				fovLight: 0.1,
+				lightIntensity: 1.5,
+				shadowIntensity: 0.1,
+				bias: -0.0000001,
+				shininess: 200,
+			};
+
+
+			// COMPUTER
+			if( !(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) ) {
+				document.getElementById("controllersDiv").style.visibility = "hidden";
+				document.getElementById("canvasView").style.height = "100%";
+			}
+			// MOBILE
+			else {
+				onMobile = true;
+				document.getElementById("controllersDiv").style.visibility = "visible";
+				
+				document.getElementById("startBtn").style.left = "37%";
+				document.getElementById("startBtn").style.width = "26%";
+
+				document.getElementById('pointView').ondblclick = function(e) {
+					key[5]=true;
+					setTimeout(function(){key[5]=false;}, 200)
+					e.preventDefault();
+					console.log("dbclick");
+				} 
+
+				function setButtonsSize(height) {
+					document.getElementById("ButtonW").style.height = height;
+					document.getElementById("ButtonA").style.height = height;
+					document.getElementById("ButtonS").style.height = height;
+					document.getElementById("ButtonD").style.height = height;
+					document.getElementById("ButtonSettings").style.height = height;
+				}
+
+				var landscapeMode = window.orientation == 90 || window.orientation == -90
+
+				// Reload page on orientation change
+				window.onorientationchange = function() { 
+					var orientation = window.orientation; 
+						switch(orientation) { 
+							case 0: {
+								setButtonsSize("8%");
+								document.getElementById("canvasView").style.height = "";
+								if (!gameStarted) location.reload();
+								break;
+							}
+							case 90:; 
+							case -90: {
+								setButtonsSize("18%");
+								document.getElementById("canvasView").style.height = "100%";
+								if (!gameStarted) location.reload();
+							}
+							break; } 
+				};
+
+				var btnHeight = "8%";
+				if (landscapeMode) {
+					btnHeight = "18%"
+					document.getElementById("canvasView").style.height = "100%";
+				}
+				setButtonsSize(btnHeight);
+			}
+
+			// Aggiunta event listener
+			canvas.onmousedown = mouseDown;
+			canvas.onmouseup = mouseUp;
+			canvas.mouseout = mouseUp;
+			canvas.onmousemove = mouseMove;
+			window.addEventListener('keydown', doKeyDown, true);
+			window.addEventListener('keyup', doKeyUp, true);
+
+
+			// Variabili di rendering
+			var doneSomething=false; 
+			var nstep=0; 
+			var timeNow=0;
+
+			const PHYS_SAMPLING_STEP=20; 	
+			// numero di millisec che un passo di fisica simula
+			
+			InitGame(); 
+			update(); // start animation
+			window.requestAnimationFrame(update);
+
+		</script>
+	</body>
+</html>  
