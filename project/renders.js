@@ -103,7 +103,7 @@ async function drawScene(
 			if (!gamePause) asteroidSpecs[2] += asteroidSpeed
 			
 			// Appena l'asteroide raggiunge l'rigine dell'asse Z controllo l'eventuale collisione
-			if (asteroidSpecs[2] > 9) { 
+			if (asteroidSpecs[2] < 2 && asteroidSpecs[2] > 0) { 
 				CheckCollision(asteroidList[0])
 			}
 
